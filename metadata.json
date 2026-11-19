@@ -1,0 +1,8 @@
+{
+  "name": "Remix ObraService",
+  "description": "Plataforma profesional para gestión integral de obras, presupuestos por partidas, control de costes, diario de obra y seguimiento con clientes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

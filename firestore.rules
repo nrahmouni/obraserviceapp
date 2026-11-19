@@ -1,0 +1,184 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Global Validation Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Connection test endpoint
+    match /test/{docId} {
+      allow get: if isValidId(docId);
+    }
+
+    // ===============================================================
+    // Entity Blueprints
+    // ===============================================================
+
+    function isValidAppUser(data) {
+      return data.keys().hasAll(['id', 'name', 'email', 'role', 'companyName', 'assignedProjectIds']) &&
+             data.keys().hasOnly(['id', 'name', 'email', 'password', 'role', 'companyName', 'subcontrataId', 'assignedProjectIds', 'emailVerified', 'subscription']) &&
+             data.id is string && data.id.size() >= 1 && data.id.size() <= 128 &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
+             data.email is string && data.email.size() >= 3 && data.email.size() <= 160 &&
+             data.role is string && data.role in ['constructora', 'jefe_obra', 'encargado', 'subcontrata'] &&
+             data.companyName is string && data.companyName.size() >= 1 && data.companyName.size() <= 160 &&
+             data.assignedProjectIds is list && data.assignedProjectIds.size() <= 100 &&
+             (!('password' in data) || (data.password is string && data.password.size() <= 128)) &&
+             (!('subcontrataId' in data) || (data.subcontrataId is string && data.subcontrataId.size() <= 128)) &&
+             (!('emailVerified' in data) || data.emailVerified is bool) &&
+             (!('subscription' in data) || data.subscription is map);
+    }
+
+    function isValidObraProject(data) {
+      return data.keys().hasAll(['id', 'code', 'title', 'address', 'city', 'startDate', 'status', 'jefeObraId', 'jefeObraName', 'encargadoId', 'encargadoName', 'subcontrataIds']) &&
+             data.keys().hasOnly(['id', 'code', 'title', 'address', 'city', 'startDate', 'status', 'jefeObraId', 'jefeObraName', 'encargadoId', 'encargadoName', 'subcontrataIds', 'coverImage']) &&
+             data.id is string && data.id.size() >= 1 && data.id.size() <= 128 &&
+             data.code is string && data.code.size() >= 1 && data.code.size() <= 64 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 200 &&
+             data.address is string && data.address.size() >= 1 && data.address.size() <= 250 &&
+             data.city is string && data.city.size() >= 1 && data.city.size() <= 100 &&
+             data.startDate is string && data.startDate.size() >= 1 && data.startDate.size() <= 40 &&
+             data.status is string && data.status in ['activa', 'en_garantia', 'finalizada'] &&
+             data.jefeObraId is string && data.jefeObraId.size() >= 1 && data.jefeObraId.size() <= 128 &&
+             data.jefeObraName is string && data.jefeObraName.size() >= 1 && data.jefeObraName.size() <= 120 &&
+             data.encargadoId is string && data.encargadoId.size() >= 1 && data.encargadoId.size() <= 128 &&
+             data.encargadoName is string && data.encargadoName.size() >= 1 && data.encargadoName.size() <= 120 &&
+             data.subcontrataIds is list && data.subcontrataIds.size() <= 100 &&
+             (!('coverImage' in data) || (data.coverImage is string && data.coverImage.size() <= 500));
+    }
+
+    function isValidSubcontrata(data) {
+      return data.keys().hasAll(['id', 'companyName', 'cif', 'trade', 'contactPerson', 'phone', 'email', 'hourlyRateStandard', 'assignedProjectIds']) &&
+             data.keys().hasOnly(['id', 'companyName', 'cif', 'trade', 'contactPerson', 'phone', 'email', 'hourlyRateStandard', 'assignedProjectIds']) &&
+             data.id is string && data.id.size() >= 1 && data.id.size() <= 128 &&
+             data.companyName is string && data.companyName.size() >= 1 && data.companyName.size() <= 160 &&
+             data.cif is string && data.cif.size() >= 1 && data.cif.size() <= 32 &&
+             data.trade is string && data.trade.size() >= 1 && data.trade.size() <= 120 &&
+             data.contactPerson is string && data.contactPerson.size() >= 1 && data.contactPerson.size() <= 120 &&
+             data.phone is string && data.phone.size() >= 1 && data.phone.size() <= 40 &&
+             data.email is string && data.email.size() >= 3 && data.email.size() <= 160 &&
+             data.hourlyRateStandard is number && data.hourlyRateStandard >= 0 && data.hourlyRateStandard <= 500 &&
+             data.assignedProjectIds is list && data.assignedProjectIds.size() <= 100;
+    }
+
+    function isValidWorker(data) {
+      return data.keys().hasAll(['id', 'subcontrataId', 'subcontrataName', 'name', 'dni', 'category', 'active']) &&
+             data.keys().hasOnly(['id', 'subcontrataId', 'subcontrataName', 'name', 'dni', 'category', 'phone', 'active']) &&
+             data.id is string && data.id.size() >= 1 && data.id.size() <= 128 &&
+             data.subcontrataId is string && data.subcontrataId.size() >= 1 && data.subcontrataId.size() <= 128 &&
+             data.subcontrataName is string && data.subcontrataName.size() >= 1 && data.subcontrataName.size() <= 160 &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
+             data.dni is string && data.dni.size() >= 1 && data.dni.size() <= 32 &&
+             data.category is string && data.category in ['Oficial 1ª', 'Oficial 2ª', 'Peón Especialista', 'Peón Ordinario', 'Encargado Subcontrata'] &&
+             data.active is bool &&
+             (!('phone' in data) || (data.phone is string && data.phone.size() <= 40));
+    }
+
+    function isValidStaffMember(data) {
+      return data.keys().hasAll(['id', 'name', 'role', 'phone', 'email', 'activeProjectsCount']) &&
+             data.keys().hasOnly(['id', 'name', 'role', 'phone', 'email', 'activeProjectsCount']) &&
+             data.id is string && data.id.size() >= 1 && data.id.size() <= 128 &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
+             data.role is string && data.role in ['jefe_obra', 'encargado'] &&
+             data.phone is string && data.phone.size() >= 1 && data.phone.size() <= 40 &&
+             data.email is string && data.email.size() >= 3 && data.email.size() <= 160 &&
+             data.activeProjectsCount is number && data.activeProjectsCount >= 0 && data.activeProjectsCount <= 500;
+    }
+
+    function isValidAlbaranDiario(data) {
+      return data.keys().hasAll(['id', 'albaranNumber', 'projectId', 'projectTitle', 'subcontrataId', 'subcontrataName', 'date', 'createdAt', 'createdByEncargadoId', 'createdByEncargadoName', 'workers', 'totalHours', 'generalNotes', 'status']) &&
+             data.keys().hasOnly(['id', 'albaranNumber', 'projectId', 'projectTitle', 'subcontrataId', 'subcontrataName', 'date', 'createdAt', 'createdByEncargadoId', 'createdByEncargadoName', 'workers', 'totalHours', 'generalNotes', 'tajoZone', 'photoUrl', 'encargadoSignature', 'status', 'subcontrataReview', 'jefeObraApproval', 'rectification']) &&
+             data.id is string && data.id.size() >= 1 && data.id.size() <= 128 &&
+             data.albaranNumber is string && data.albaranNumber.size() >= 1 && data.albaranNumber.size() <= 64 &&
+             data.projectId is string && data.projectId.size() >= 1 && data.projectId.size() <= 128 &&
+             data.projectTitle is string && data.projectTitle.size() >= 1 && data.projectTitle.size() <= 200 &&
+             data.subcontrataId is string && data.subcontrataId.size() >= 1 && data.subcontrataId.size() <= 128 &&
+             data.subcontrataName is string && data.subcontrataName.size() >= 1 && data.subcontrataName.size() <= 160 &&
+             data.date is string && data.date.size() >= 1 && data.date.size() <= 40 &&
+             data.createdAt is string && data.createdAt.size() >= 1 && data.createdAt.size() <= 64 &&
+             data.createdByEncargadoId is string && data.createdByEncargadoId.size() >= 1 && data.createdByEncargadoId.size() <= 128 &&
+             data.createdByEncargadoName is string && data.createdByEncargadoName.size() >= 1 && data.createdByEncargadoName.size() <= 120 &&
+             data.workers is list && data.workers.size() <= 200 &&
+             data.totalHours is number && data.totalHours >= 0 && data.totalHours <= 2400 &&
+             data.generalNotes is string && data.generalNotes.size() <= 2000 &&
+             data.status is string && data.status in ['pendiente_subcontrata', 'validado_subcontrata', 'aprobado_final', 'observado'] &&
+             (!('tajoZone' in data) || (data.tajoZone is string && data.tajoZone.size() <= 250)) &&
+             (!('photoUrl' in data) || (data.photoUrl is string && data.photoUrl.size() <= 450000)) &&
+             (!('encargadoSignature' in data) || (data.encargadoSignature is string && data.encargadoSignature.size() <= 150000)) &&
+             (!('subcontrataReview' in data) || data.subcontrataReview is map) &&
+             (!('jefeObraApproval' in data) || data.jefeObraApproval is map) &&
+             (!('rectification' in data) || data.rectification is map);
+    }
+
+    // ===============================================================
+    // Collections Match Blocks
+    // ===============================================================
+
+    match /users/{userId} {
+      allow get: if isValidId(userId);
+      allow list: if true;
+      allow create: if isValidId(userId) && isValidAppUser(incoming()) && incoming().id == userId;
+      allow update: if isValidId(userId) && isValidAppUser(incoming()) && incoming().id == existing().id;
+    }
+
+    match /obras/{obraId} {
+      allow get: if isValidId(obraId);
+      allow list: if true;
+      allow create: if isValidId(obraId) && isValidObraProject(incoming()) && incoming().id == obraId;
+      allow update: if isValidId(obraId) && isValidObraProject(incoming()) && incoming().id == existing().id;
+    }
+
+    match /subcontratas/{subId} {
+      allow get: if isValidId(subId);
+      allow list: if true;
+      allow create: if isValidId(subId) && isValidSubcontrata(incoming()) && incoming().id == subId;
+      allow update: if isValidId(subId) && isValidSubcontrata(incoming()) && incoming().id == existing().id;
+    }
+
+    match /workers/{workerId} {
+      allow get: if isValidId(workerId);
+      allow list: if true;
+      allow create: if isValidId(workerId) && isValidWorker(incoming()) && incoming().id == workerId;
+      allow update: if isValidId(workerId) && isValidWorker(incoming()) && incoming().id == existing().id;
+      allow delete: if isValidId(workerId) && existing().id == workerId;
+    }
+
+    match /staff/{staffId} {
+      allow get: if isValidId(staffId);
+      allow list: if true;
+      allow create: if isValidId(staffId) && isValidStaffMember(incoming()) && incoming().id == staffId;
+      allow update: if isValidId(staffId) && isValidStaffMember(incoming()) && incoming().id == existing().id;
+    }
+
+    match /albaranes/{albaranId} {
+      allow get: if isValidId(albaranId);
+      allow list: if true;
+      allow create: if isValidId(albaranId) && isValidAlbaranDiario(incoming()) && incoming().id == albaranId;
+      allow update: if isValidId(albaranId) && isValidAlbaranDiario(incoming()) &&
+                    incoming().id == existing().id &&
+                    incoming().projectId == existing().projectId &&
+                    incoming().subcontrataId == existing().subcontrataId && (
+                      // Action 1: Subcontrata review (Visto Bueno or Discrepancia)
+                      incoming().diff(existing()).affectedKeys().hasOnly(['status', 'subcontrataReview']) ||
+                      // Action 2: Jefe de Obra final certification
+                      incoming().diff(existing()).affectedKeys().hasOnly(['status', 'jefeObraApproval']) ||
+                      // Action 3: Encargado rectification of an albaran
+                      incoming().diff(existing()).affectedKeys().hasOnly(['workers', 'totalHours', 'date', 'tajoZone', 'generalNotes', 'photoUrl', 'encargadoSignature', 'status', 'subcontrataReview', 'jefeObraApproval', 'rectification'])
+                    );
+    }
+  }
+}

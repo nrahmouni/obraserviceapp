@@ -1,0 +1,339 @@
+{
+  "entities": {
+    "AppUser": {
+      "title": "AppUser",
+      "description": "User profile in ObraService representing an Encargado, Subcontrata, Jefe de Obra, or Constructora administrator.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 160
+        },
+        "password": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "role": {
+          "type": "string",
+          "enum": ["constructora", "jefe_obra", "encargado", "subcontrata"]
+        },
+        "companyName": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "subcontrataId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "assignedProjectIds": {
+          "type": "array",
+          "description": "List of assigned Obra IDs"
+        },
+        "emailVerified": {
+          "type": "boolean"
+        },
+        "subscription": {
+          "type": "object",
+          "description": "Active SaaS plan, trial status, and billing cycle"
+        }
+      },
+      "required": ["id", "name", "email", "role", "companyName", "assignedProjectIds"]
+    },
+    "ObraProject": {
+      "title": "ObraProject",
+      "description": "Construction project managed by the main contractor.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "code": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "address": {
+          "type": "string",
+          "maxLength": 250
+        },
+        "city": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "startDate": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "status": {
+          "type": "string",
+          "enum": ["activa", "en_garantia", "finalizada"]
+        },
+        "jefeObraId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "jefeObraName": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "encargadoId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "encargadoName": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "subcontrataIds": {
+          "type": "array",
+          "description": "Assigned subcontractor IDs"
+        },
+        "coverImage": {
+          "type": "string",
+          "maxLength": 500
+        }
+      },
+      "required": ["id", "code", "title", "address", "city", "startDate", "status", "jefeObraId", "jefeObraName", "encargadoId", "encargadoName", "subcontrataIds"]
+    },
+    "Subcontrata": {
+      "title": "Subcontrata",
+      "description": "Subcontractor company working on construction sites.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "companyName": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "cif": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "trade": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "contactPerson": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "hourlyRateStandard": {
+          "type": "number"
+        },
+        "assignedProjectIds": {
+          "type": "array"
+        }
+      },
+      "required": ["id", "companyName", "cif", "trade", "contactPerson", "phone", "email", "hourlyRateStandard", "assignedProjectIds"]
+    },
+    "Worker": {
+      "title": "Worker",
+      "description": "Subcontractor field worker (Oficial or Peon).",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "subcontrataId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "subcontrataName": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "dni": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "category": {
+          "type": "string",
+          "enum": ["Oficial 1ª", "Oficial 2ª", "Peón Especialista", "Peón Ordinario", "Encargado Subcontrata"]
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "active": {
+          "type": "boolean"
+        }
+      },
+      "required": ["id", "subcontrataId", "subcontrataName", "name", "dni", "category", "active"]
+    },
+    "StaffMember": {
+      "title": "StaffMember",
+      "description": "Technical staff of the main contractor (Jefe de Obra or Encargado).",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "role": {
+          "type": "string",
+          "enum": ["jefe_obra", "encargado"]
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "activeProjectsCount": {
+          "type": "number"
+        }
+      },
+      "required": ["id", "name", "role", "phone", "email", "activeProjectsCount"]
+    },
+    "AlbaranDiario": {
+      "title": "AlbaranDiario",
+      "description": "Daily work report and hour log created by the site foreman, validated by the subcontractor, and certified by the project manager.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "albaranNumber": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "projectId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "projectTitle": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "subcontrataId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "subcontrataName": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "date": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "createdAt": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "createdByEncargadoId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "createdByEncargadoName": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "workers": {
+          "type": "array"
+        },
+        "totalHours": {
+          "type": "number"
+        },
+        "generalNotes": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "tajoZone": {
+          "type": "string",
+          "maxLength": 250
+        },
+        "photoUrl": {
+          "type": "string",
+          "maxLength": 450000
+        },
+        "encargadoSignature": {
+          "type": "string",
+          "maxLength": 150000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pendiente_subcontrata", "validado_subcontrata", "aprobado_final", "observado"]
+        },
+        "subcontrataReview": {
+          "type": "object"
+        },
+        "jefeObraApproval": {
+          "type": "object"
+        },
+        "rectification": {
+          "type": "object"
+        }
+      },
+      "required": ["id", "albaranNumber", "projectId", "projectTitle", "subcontrataId", "subcontrataName", "date", "createdAt", "createdByEncargadoId", "createdByEncargadoName", "workers", "totalHours", "generalNotes", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/AppUser" },
+      "description": "Registered application users across all 4 construction roles."
+    },
+    "/obras/{obraId}": {
+      "schema": { "$ref": "#/entities/ObraProject" },
+      "description": "Active and historical construction projects."
+    },
+    "/subcontratas/{subId}": {
+      "schema": { "$ref": "#/entities/Subcontrata" },
+      "description": "Homologated subcontractor companies."
+    },
+    "/workers/{workerId}": {
+      "schema": { "$ref": "#/entities/Worker" },
+      "description": "Subcontractor workers (Oficiales and Peones)."
+    },
+    "/staff/{staffId}": {
+      "schema": { "$ref": "#/entities/StaffMember" },
+      "description": "Technical staff of the main contractor."
+    },
+    "/albaranes/{albaranId}": {
+      "schema": { "$ref": "#/entities/AlbaranDiario" },
+      "description": "Daily work reports and hour certifications."
+    }
+  }
+}
